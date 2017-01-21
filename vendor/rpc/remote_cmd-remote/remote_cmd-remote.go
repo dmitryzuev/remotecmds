@@ -22,12 +22,10 @@ func Usage() {
   flag.PrintDefaults()
   fmt.Fprintln(os.Stderr, "\nFunctions:")
   fmt.Fprintln(os.Stderr, "  string utc()")
-  fmt.Fprintln(os.Stderr, "  string cpu_usage()")
-  fmt.Fprintln(os.Stderr, "  string available_ram()")
-  fmt.Fprintln(os.Stderr, "  string cpu_usage_last_hour()")
-  fmt.Fprintln(os.Stderr, "  string available_ram_last_hour()")
-  fmt.Fprintln(os.Stderr, "  string download_url(string url, string folder)")
-  fmt.Fprintln(os.Stderr, "  string say(string phrase)")
+  fmt.Fprintln(os.Stderr, "  string cpu()")
+  fmt.Fprintln(os.Stderr, "  string ram()")
+  fmt.Fprintln(os.Stderr, "  void download(string url, string folder)")
+  fmt.Fprintln(os.Stderr, "  void say(string phrase)")
   fmt.Fprintln(os.Stderr, "  string screenshot()")
   fmt.Fprintln(os.Stderr)
   os.Exit(0)
@@ -131,48 +129,32 @@ func main() {
     fmt.Print(client.Utc())
     fmt.Print("\n")
     break
-  case "cpu_usage":
+  case "cpu":
     if flag.NArg() - 1 != 0 {
-      fmt.Fprintln(os.Stderr, "CPUUsage requires 0 args")
+      fmt.Fprintln(os.Stderr, "CPU requires 0 args")
       flag.Usage()
     }
-    fmt.Print(client.CPUUsage())
+    fmt.Print(client.CPU())
     fmt.Print("\n")
     break
-  case "available_ram":
+  case "ram":
     if flag.NArg() - 1 != 0 {
-      fmt.Fprintln(os.Stderr, "AvailableRAM requires 0 args")
+      fmt.Fprintln(os.Stderr, "RAM requires 0 args")
       flag.Usage()
     }
-    fmt.Print(client.AvailableRAM())
+    fmt.Print(client.RAM())
     fmt.Print("\n")
     break
-  case "cpu_usage_last_hour":
-    if flag.NArg() - 1 != 0 {
-      fmt.Fprintln(os.Stderr, "CPUUsageLastHour requires 0 args")
-      flag.Usage()
-    }
-    fmt.Print(client.CPUUsageLastHour())
-    fmt.Print("\n")
-    break
-  case "available_ram_last_hour":
-    if flag.NArg() - 1 != 0 {
-      fmt.Fprintln(os.Stderr, "AvailableRAMLastHour requires 0 args")
-      flag.Usage()
-    }
-    fmt.Print(client.AvailableRAMLastHour())
-    fmt.Print("\n")
-    break
-  case "download_url":
+  case "download":
     if flag.NArg() - 1 != 2 {
-      fmt.Fprintln(os.Stderr, "DownloadURL requires 2 args")
+      fmt.Fprintln(os.Stderr, "Download requires 2 args")
       flag.Usage()
     }
     argvalue0 := flag.Arg(1)
     value0 := argvalue0
     argvalue1 := flag.Arg(2)
     value1 := argvalue1
-    fmt.Print(client.DownloadURL(value0, value1))
+    fmt.Print(client.Download(value0, value1))
     fmt.Print("\n")
     break
   case "say":

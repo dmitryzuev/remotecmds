@@ -10,6 +10,8 @@ func handleClient(client *rpc.RemoteCmdClient) (err error) {
 	utc, _ := client.Utc()
 	fmt.Println("Current time:", utc)
 
+	client.Say("Hello, world!")
+
 	return err
 }
 

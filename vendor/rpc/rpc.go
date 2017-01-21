@@ -16,17 +16,15 @@ var _ = bytes.Equal
 
 type RemoteCmd interface {
   Utc() (r string, err error)
-  CPUUsage() (r string, err error)
-  AvailableRAM() (r string, err error)
-  CPUUsageLastHour() (r string, err error)
-  AvailableRAMLastHour() (r string, err error)
+  CPU() (r string, err error)
+  RAM() (r string, err error)
   // Parameters:
   //  - URL
   //  - Folder
-  DownloadURL(url string, folder string) (r string, err error)
+  Download(url string, folder string) (err error)
   // Parameters:
   //  - Phrase
-  Say(phrase string) (r string, err error)
+  Say(phrase string) (err error)
   Screenshot() (r []byte, err error)
 }
 
@@ -129,22 +127,22 @@ func (p *RemoteCmdClient) recvUtc() (value string, err error) {
   return
 }
 
-func (p *RemoteCmdClient) CPUUsage() (r string, err error) {
-  if err = p.sendCPUUsage(); err != nil { return }
-  return p.recvCPUUsage()
+func (p *RemoteCmdClient) CPU() (r string, err error) {
+  if err = p.sendCPU(); err != nil { return }
+  return p.recvCPU()
 }
 
-func (p *RemoteCmdClient) sendCPUUsage()(err error) {
+func (p *RemoteCmdClient) sendCPU()(err error) {
   oprot := p.OutputProtocol
   if oprot == nil {
     oprot = p.ProtocolFactory.GetProtocol(p.Transport)
     p.OutputProtocol = oprot
   }
   p.SeqId++
-  if err = oprot.WriteMessageBegin("cpu_usage", thrift.CALL, p.SeqId); err != nil {
+  if err = oprot.WriteMessageBegin("cpu", thrift.CALL, p.SeqId); err != nil {
       return
   }
-  args := RemoteCmdCPUUsageArgs{
+  args := RemoteCmdCPUArgs{
   }
   if err = args.Write(oprot); err != nil {
       return
@@ -156,7 +154,7 @@ func (p *RemoteCmdClient) sendCPUUsage()(err error) {
 }
 
 
-func (p *RemoteCmdClient) recvCPUUsage() (value string, err error) {
+func (p *RemoteCmdClient) recvCPU() (value string, err error) {
   iprot := p.InputProtocol
   if iprot == nil {
     iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -166,12 +164,12 @@ func (p *RemoteCmdClient) recvCPUUsage() (value string, err error) {
   if err != nil {
     return
   }
-  if method != "cpu_usage" {
-    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "cpu_usage failed: wrong method name")
+  if method != "cpu" {
+    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "cpu failed: wrong method name")
     return
   }
   if p.SeqId != seqId {
-    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "cpu_usage failed: out of sequence response")
+    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "cpu failed: out of sequence response")
     return
   }
   if mTypeId == thrift.EXCEPTION {
@@ -188,10 +186,10 @@ func (p *RemoteCmdClient) recvCPUUsage() (value string, err error) {
     return
   }
   if mTypeId != thrift.REPLY {
-    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "cpu_usage failed: invalid message type")
+    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "cpu failed: invalid message type")
     return
   }
-  result := RemoteCmdCPUUsageResult{}
+  result := RemoteCmdCPUResult{}
   if err = result.Read(iprot); err != nil {
     return
   }
@@ -202,22 +200,22 @@ func (p *RemoteCmdClient) recvCPUUsage() (value string, err error) {
   return
 }
 
-func (p *RemoteCmdClient) AvailableRAM() (r string, err error) {
-  if err = p.sendAvailableRAM(); err != nil { return }
-  return p.recvAvailableRAM()
+func (p *RemoteCmdClient) RAM() (r string, err error) {
+  if err = p.sendRAM(); err != nil { return }
+  return p.recvRAM()
 }
 
-func (p *RemoteCmdClient) sendAvailableRAM()(err error) {
+func (p *RemoteCmdClient) sendRAM()(err error) {
   oprot := p.OutputProtocol
   if oprot == nil {
     oprot = p.ProtocolFactory.GetProtocol(p.Transport)
     p.OutputProtocol = oprot
   }
   p.SeqId++
-  if err = oprot.WriteMessageBegin("available_ram", thrift.CALL, p.SeqId); err != nil {
+  if err = oprot.WriteMessageBegin("ram", thrift.CALL, p.SeqId); err != nil {
       return
   }
-  args := RemoteCmdAvailableRAMArgs{
+  args := RemoteCmdRAMArgs{
   }
   if err = args.Write(oprot); err != nil {
       return
@@ -229,7 +227,7 @@ func (p *RemoteCmdClient) sendAvailableRAM()(err error) {
 }
 
 
-func (p *RemoteCmdClient) recvAvailableRAM() (value string, err error) {
+func (p *RemoteCmdClient) recvRAM() (value string, err error) {
   iprot := p.InputProtocol
   if iprot == nil {
     iprot = p.ProtocolFactory.GetProtocol(p.Transport)
@@ -239,12 +237,12 @@ func (p *RemoteCmdClient) recvAvailableRAM() (value string, err error) {
   if err != nil {
     return
   }
-  if method != "available_ram" {
-    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "available_ram failed: wrong method name")
+  if method != "ram" {
+    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "ram failed: wrong method name")
     return
   }
   if p.SeqId != seqId {
-    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "available_ram failed: out of sequence response")
+    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "ram failed: out of sequence response")
     return
   }
   if mTypeId == thrift.EXCEPTION {
@@ -261,156 +259,10 @@ func (p *RemoteCmdClient) recvAvailableRAM() (value string, err error) {
     return
   }
   if mTypeId != thrift.REPLY {
-    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "available_ram failed: invalid message type")
+    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "ram failed: invalid message type")
     return
   }
-  result := RemoteCmdAvailableRAMResult{}
-  if err = result.Read(iprot); err != nil {
-    return
-  }
-  if err = iprot.ReadMessageEnd(); err != nil {
-    return
-  }
-  value = result.GetSuccess()
-  return
-}
-
-func (p *RemoteCmdClient) CPUUsageLastHour() (r string, err error) {
-  if err = p.sendCPUUsageLastHour(); err != nil { return }
-  return p.recvCPUUsageLastHour()
-}
-
-func (p *RemoteCmdClient) sendCPUUsageLastHour()(err error) {
-  oprot := p.OutputProtocol
-  if oprot == nil {
-    oprot = p.ProtocolFactory.GetProtocol(p.Transport)
-    p.OutputProtocol = oprot
-  }
-  p.SeqId++
-  if err = oprot.WriteMessageBegin("cpu_usage_last_hour", thrift.CALL, p.SeqId); err != nil {
-      return
-  }
-  args := RemoteCmdCPUUsageLastHourArgs{
-  }
-  if err = args.Write(oprot); err != nil {
-      return
-  }
-  if err = oprot.WriteMessageEnd(); err != nil {
-      return
-  }
-  return oprot.Flush()
-}
-
-
-func (p *RemoteCmdClient) recvCPUUsageLastHour() (value string, err error) {
-  iprot := p.InputProtocol
-  if iprot == nil {
-    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
-    p.InputProtocol = iprot
-  }
-  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
-  if err != nil {
-    return
-  }
-  if method != "cpu_usage_last_hour" {
-    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "cpu_usage_last_hour failed: wrong method name")
-    return
-  }
-  if p.SeqId != seqId {
-    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "cpu_usage_last_hour failed: out of sequence response")
-    return
-  }
-  if mTypeId == thrift.EXCEPTION {
-    error6 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error7 error
-    error7, err = error6.Read(iprot)
-    if err != nil {
-      return
-    }
-    if err = iprot.ReadMessageEnd(); err != nil {
-      return
-    }
-    err = error7
-    return
-  }
-  if mTypeId != thrift.REPLY {
-    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "cpu_usage_last_hour failed: invalid message type")
-    return
-  }
-  result := RemoteCmdCPUUsageLastHourResult{}
-  if err = result.Read(iprot); err != nil {
-    return
-  }
-  if err = iprot.ReadMessageEnd(); err != nil {
-    return
-  }
-  value = result.GetSuccess()
-  return
-}
-
-func (p *RemoteCmdClient) AvailableRAMLastHour() (r string, err error) {
-  if err = p.sendAvailableRAMLastHour(); err != nil { return }
-  return p.recvAvailableRAMLastHour()
-}
-
-func (p *RemoteCmdClient) sendAvailableRAMLastHour()(err error) {
-  oprot := p.OutputProtocol
-  if oprot == nil {
-    oprot = p.ProtocolFactory.GetProtocol(p.Transport)
-    p.OutputProtocol = oprot
-  }
-  p.SeqId++
-  if err = oprot.WriteMessageBegin("available_ram_last_hour", thrift.CALL, p.SeqId); err != nil {
-      return
-  }
-  args := RemoteCmdAvailableRAMLastHourArgs{
-  }
-  if err = args.Write(oprot); err != nil {
-      return
-  }
-  if err = oprot.WriteMessageEnd(); err != nil {
-      return
-  }
-  return oprot.Flush()
-}
-
-
-func (p *RemoteCmdClient) recvAvailableRAMLastHour() (value string, err error) {
-  iprot := p.InputProtocol
-  if iprot == nil {
-    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
-    p.InputProtocol = iprot
-  }
-  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
-  if err != nil {
-    return
-  }
-  if method != "available_ram_last_hour" {
-    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "available_ram_last_hour failed: wrong method name")
-    return
-  }
-  if p.SeqId != seqId {
-    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "available_ram_last_hour failed: out of sequence response")
-    return
-  }
-  if mTypeId == thrift.EXCEPTION {
-    error8 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error9 error
-    error9, err = error8.Read(iprot)
-    if err != nil {
-      return
-    }
-    if err = iprot.ReadMessageEnd(); err != nil {
-      return
-    }
-    err = error9
-    return
-  }
-  if mTypeId != thrift.REPLY {
-    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "available_ram_last_hour failed: invalid message type")
-    return
-  }
-  result := RemoteCmdAvailableRAMLastHourResult{}
+  result := RemoteCmdRAMResult{}
   if err = result.Read(iprot); err != nil {
     return
   }
@@ -424,22 +276,22 @@ func (p *RemoteCmdClient) recvAvailableRAMLastHour() (value string, err error) {
 // Parameters:
 //  - URL
 //  - Folder
-func (p *RemoteCmdClient) DownloadURL(url string, folder string) (r string, err error) {
-  if err = p.sendDownloadURL(url, folder); err != nil { return }
-  return p.recvDownloadURL()
+func (p *RemoteCmdClient) Download(url string, folder string) (err error) {
+  if err = p.sendDownload(url, folder); err != nil { return }
+  return
 }
 
-func (p *RemoteCmdClient) sendDownloadURL(url string, folder string)(err error) {
+func (p *RemoteCmdClient) sendDownload(url string, folder string)(err error) {
   oprot := p.OutputProtocol
   if oprot == nil {
     oprot = p.ProtocolFactory.GetProtocol(p.Transport)
     p.OutputProtocol = oprot
   }
   p.SeqId++
-  if err = oprot.WriteMessageBegin("download_url", thrift.CALL, p.SeqId); err != nil {
+  if err = oprot.WriteMessageBegin("download", thrift.ONEWAY, p.SeqId); err != nil {
       return
   }
-  args := RemoteCmdDownloadURLArgs{
+  args := RemoteCmdDownloadArgs{
   URL : url,
   Folder : folder,
   }
@@ -452,58 +304,11 @@ func (p *RemoteCmdClient) sendDownloadURL(url string, folder string)(err error) 
   return oprot.Flush()
 }
 
-
-func (p *RemoteCmdClient) recvDownloadURL() (value string, err error) {
-  iprot := p.InputProtocol
-  if iprot == nil {
-    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
-    p.InputProtocol = iprot
-  }
-  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
-  if err != nil {
-    return
-  }
-  if method != "download_url" {
-    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "download_url failed: wrong method name")
-    return
-  }
-  if p.SeqId != seqId {
-    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "download_url failed: out of sequence response")
-    return
-  }
-  if mTypeId == thrift.EXCEPTION {
-    error10 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error11 error
-    error11, err = error10.Read(iprot)
-    if err != nil {
-      return
-    }
-    if err = iprot.ReadMessageEnd(); err != nil {
-      return
-    }
-    err = error11
-    return
-  }
-  if mTypeId != thrift.REPLY {
-    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "download_url failed: invalid message type")
-    return
-  }
-  result := RemoteCmdDownloadURLResult{}
-  if err = result.Read(iprot); err != nil {
-    return
-  }
-  if err = iprot.ReadMessageEnd(); err != nil {
-    return
-  }
-  value = result.GetSuccess()
-  return
-}
-
 // Parameters:
 //  - Phrase
-func (p *RemoteCmdClient) Say(phrase string) (r string, err error) {
+func (p *RemoteCmdClient) Say(phrase string) (err error) {
   if err = p.sendSay(phrase); err != nil { return }
-  return p.recvSay()
+  return
 }
 
 func (p *RemoteCmdClient) sendSay(phrase string)(err error) {
@@ -513,7 +318,7 @@ func (p *RemoteCmdClient) sendSay(phrase string)(err error) {
     p.OutputProtocol = oprot
   }
   p.SeqId++
-  if err = oprot.WriteMessageBegin("say", thrift.CALL, p.SeqId); err != nil {
+  if err = oprot.WriteMessageBegin("say", thrift.ONEWAY, p.SeqId); err != nil {
       return
   }
   args := RemoteCmdSayArgs{
@@ -526,53 +331,6 @@ func (p *RemoteCmdClient) sendSay(phrase string)(err error) {
       return
   }
   return oprot.Flush()
-}
-
-
-func (p *RemoteCmdClient) recvSay() (value string, err error) {
-  iprot := p.InputProtocol
-  if iprot == nil {
-    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
-    p.InputProtocol = iprot
-  }
-  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
-  if err != nil {
-    return
-  }
-  if method != "say" {
-    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "say failed: wrong method name")
-    return
-  }
-  if p.SeqId != seqId {
-    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "say failed: out of sequence response")
-    return
-  }
-  if mTypeId == thrift.EXCEPTION {
-    error12 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error13 error
-    error13, err = error12.Read(iprot)
-    if err != nil {
-      return
-    }
-    if err = iprot.ReadMessageEnd(); err != nil {
-      return
-    }
-    err = error13
-    return
-  }
-  if mTypeId != thrift.REPLY {
-    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "say failed: invalid message type")
-    return
-  }
-  result := RemoteCmdSayResult{}
-  if err = result.Read(iprot); err != nil {
-    return
-  }
-  if err = iprot.ReadMessageEnd(); err != nil {
-    return
-  }
-  value = result.GetSuccess()
-  return
 }
 
 func (p *RemoteCmdClient) Screenshot() (r []byte, err error) {
@@ -621,16 +379,16 @@ func (p *RemoteCmdClient) recvScreenshot() (value []byte, err error) {
     return
   }
   if mTypeId == thrift.EXCEPTION {
-    error14 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error15 error
-    error15, err = error14.Read(iprot)
+    error6 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error7 error
+    error7, err = error6.Read(iprot)
     if err != nil {
       return
     }
     if err = iprot.ReadMessageEnd(); err != nil {
       return
     }
-    err = error15
+    err = error7
     return
   }
   if mTypeId != thrift.REPLY {
@@ -669,16 +427,14 @@ func (p *RemoteCmdProcessor) ProcessorMap() map[string]thrift.TProcessorFunction
 
 func NewRemoteCmdProcessor(handler RemoteCmd) *RemoteCmdProcessor {
 
-  self16 := &RemoteCmdProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
-  self16.processorMap["utc"] = &remoteCmdProcessorUtc{handler:handler}
-  self16.processorMap["cpu_usage"] = &remoteCmdProcessorCPUUsage{handler:handler}
-  self16.processorMap["available_ram"] = &remoteCmdProcessorAvailableRAM{handler:handler}
-  self16.processorMap["cpu_usage_last_hour"] = &remoteCmdProcessorCPUUsageLastHour{handler:handler}
-  self16.processorMap["available_ram_last_hour"] = &remoteCmdProcessorAvailableRAMLastHour{handler:handler}
-  self16.processorMap["download_url"] = &remoteCmdProcessorDownloadURL{handler:handler}
-  self16.processorMap["say"] = &remoteCmdProcessorSay{handler:handler}
-  self16.processorMap["screenshot"] = &remoteCmdProcessorScreenshot{handler:handler}
-return self16
+  self8 := &RemoteCmdProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
+  self8.processorMap["utc"] = &remoteCmdProcessorUtc{handler:handler}
+  self8.processorMap["cpu"] = &remoteCmdProcessorCPU{handler:handler}
+  self8.processorMap["ram"] = &remoteCmdProcessorRAM{handler:handler}
+  self8.processorMap["download"] = &remoteCmdProcessorDownload{handler:handler}
+  self8.processorMap["say"] = &remoteCmdProcessorSay{handler:handler}
+  self8.processorMap["screenshot"] = &remoteCmdProcessorScreenshot{handler:handler}
+return self8
 }
 
 func (p *RemoteCmdProcessor) Process(iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
@@ -689,12 +445,12 @@ func (p *RemoteCmdProcessor) Process(iprot, oprot thrift.TProtocol) (success boo
   }
   iprot.Skip(thrift.STRUCT)
   iprot.ReadMessageEnd()
-  x17 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
+  x9 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
   oprot.WriteMessageBegin(name, thrift.EXCEPTION, seqId)
-  x17.Write(oprot)
+  x9.Write(oprot)
   oprot.WriteMessageEnd()
   oprot.Flush()
-  return false, x17
+  return false, x9
 
 }
 
@@ -746,16 +502,16 @@ var retval string
   return true, err
 }
 
-type remoteCmdProcessorCPUUsage struct {
+type remoteCmdProcessorCPU struct {
   handler RemoteCmd
 }
 
-func (p *remoteCmdProcessorCPUUsage) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-  args := RemoteCmdCPUUsageArgs{}
+func (p *remoteCmdProcessorCPU) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+  args := RemoteCmdCPUArgs{}
   if err = args.Read(iprot); err != nil {
     iprot.ReadMessageEnd()
     x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-    oprot.WriteMessageBegin("cpu_usage", thrift.EXCEPTION, seqId)
+    oprot.WriteMessageBegin("cpu", thrift.EXCEPTION, seqId)
     x.Write(oprot)
     oprot.WriteMessageEnd()
     oprot.Flush()
@@ -763,12 +519,12 @@ func (p *remoteCmdProcessorCPUUsage) Process(seqId int32, iprot, oprot thrift.TP
   }
 
   iprot.ReadMessageEnd()
-  result := RemoteCmdCPUUsageResult{}
+  result := RemoteCmdCPUResult{}
 var retval string
   var err2 error
-  if retval, err2 = p.handler.CPUUsage(); err2 != nil {
-    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing cpu_usage: " + err2.Error())
-    oprot.WriteMessageBegin("cpu_usage", thrift.EXCEPTION, seqId)
+  if retval, err2 = p.handler.CPU(); err2 != nil {
+    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing cpu: " + err2.Error())
+    oprot.WriteMessageBegin("cpu", thrift.EXCEPTION, seqId)
     x.Write(oprot)
     oprot.WriteMessageEnd()
     oprot.Flush()
@@ -776,7 +532,7 @@ var retval string
   } else {
     result.Success = &retval
 }
-  if err2 = oprot.WriteMessageBegin("cpu_usage", thrift.REPLY, seqId); err2 != nil {
+  if err2 = oprot.WriteMessageBegin("cpu", thrift.REPLY, seqId); err2 != nil {
     err = err2
   }
   if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -794,16 +550,16 @@ var retval string
   return true, err
 }
 
-type remoteCmdProcessorAvailableRAM struct {
+type remoteCmdProcessorRAM struct {
   handler RemoteCmd
 }
 
-func (p *remoteCmdProcessorAvailableRAM) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-  args := RemoteCmdAvailableRAMArgs{}
+func (p *remoteCmdProcessorRAM) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+  args := RemoteCmdRAMArgs{}
   if err = args.Read(iprot); err != nil {
     iprot.ReadMessageEnd()
     x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-    oprot.WriteMessageBegin("available_ram", thrift.EXCEPTION, seqId)
+    oprot.WriteMessageBegin("ram", thrift.EXCEPTION, seqId)
     x.Write(oprot)
     oprot.WriteMessageEnd()
     oprot.Flush()
@@ -811,12 +567,12 @@ func (p *remoteCmdProcessorAvailableRAM) Process(seqId int32, iprot, oprot thrif
   }
 
   iprot.ReadMessageEnd()
-  result := RemoteCmdAvailableRAMResult{}
+  result := RemoteCmdRAMResult{}
 var retval string
   var err2 error
-  if retval, err2 = p.handler.AvailableRAM(); err2 != nil {
-    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing available_ram: " + err2.Error())
-    oprot.WriteMessageBegin("available_ram", thrift.EXCEPTION, seqId)
+  if retval, err2 = p.handler.RAM(); err2 != nil {
+    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ram: " + err2.Error())
+    oprot.WriteMessageBegin("ram", thrift.EXCEPTION, seqId)
     x.Write(oprot)
     oprot.WriteMessageEnd()
     oprot.Flush()
@@ -824,7 +580,7 @@ var retval string
   } else {
     result.Success = &retval
 }
-  if err2 = oprot.WriteMessageBegin("available_ram", thrift.REPLY, seqId); err2 != nil {
+  if err2 = oprot.WriteMessageBegin("ram", thrift.REPLY, seqId); err2 != nil {
     err = err2
   }
   if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -842,148 +598,23 @@ var retval string
   return true, err
 }
 
-type remoteCmdProcessorCPUUsageLastHour struct {
+type remoteCmdProcessorDownload struct {
   handler RemoteCmd
 }
 
-func (p *remoteCmdProcessorCPUUsageLastHour) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-  args := RemoteCmdCPUUsageLastHourArgs{}
+func (p *remoteCmdProcessorDownload) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+  args := RemoteCmdDownloadArgs{}
   if err = args.Read(iprot); err != nil {
     iprot.ReadMessageEnd()
-    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-    oprot.WriteMessageBegin("cpu_usage_last_hour", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
     return false, err
   }
 
   iprot.ReadMessageEnd()
-  result := RemoteCmdCPUUsageLastHourResult{}
-var retval string
   var err2 error
-  if retval, err2 = p.handler.CPUUsageLastHour(); err2 != nil {
-    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing cpu_usage_last_hour: " + err2.Error())
-    oprot.WriteMessageBegin("cpu_usage_last_hour", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
+  if err2 = p.handler.Download(args.URL, args.Folder); err2 != nil {
     return true, err2
-  } else {
-    result.Success = &retval
-}
-  if err2 = oprot.WriteMessageBegin("cpu_usage_last_hour", thrift.REPLY, seqId); err2 != nil {
-    err = err2
   }
-  if err2 = result.Write(oprot); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.Flush(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err != nil {
-    return
-  }
-  return true, err
-}
-
-type remoteCmdProcessorAvailableRAMLastHour struct {
-  handler RemoteCmd
-}
-
-func (p *remoteCmdProcessorAvailableRAMLastHour) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-  args := RemoteCmdAvailableRAMLastHourArgs{}
-  if err = args.Read(iprot); err != nil {
-    iprot.ReadMessageEnd()
-    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-    oprot.WriteMessageBegin("available_ram_last_hour", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
-    return false, err
-  }
-
-  iprot.ReadMessageEnd()
-  result := RemoteCmdAvailableRAMLastHourResult{}
-var retval string
-  var err2 error
-  if retval, err2 = p.handler.AvailableRAMLastHour(); err2 != nil {
-    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing available_ram_last_hour: " + err2.Error())
-    oprot.WriteMessageBegin("available_ram_last_hour", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
-    return true, err2
-  } else {
-    result.Success = &retval
-}
-  if err2 = oprot.WriteMessageBegin("available_ram_last_hour", thrift.REPLY, seqId); err2 != nil {
-    err = err2
-  }
-  if err2 = result.Write(oprot); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.Flush(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err != nil {
-    return
-  }
-  return true, err
-}
-
-type remoteCmdProcessorDownloadURL struct {
-  handler RemoteCmd
-}
-
-func (p *remoteCmdProcessorDownloadURL) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
-  args := RemoteCmdDownloadURLArgs{}
-  if err = args.Read(iprot); err != nil {
-    iprot.ReadMessageEnd()
-    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-    oprot.WriteMessageBegin("download_url", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
-    return false, err
-  }
-
-  iprot.ReadMessageEnd()
-  result := RemoteCmdDownloadURLResult{}
-var retval string
-  var err2 error
-  if retval, err2 = p.handler.DownloadURL(args.URL, args.Folder); err2 != nil {
-    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing download_url: " + err2.Error())
-    oprot.WriteMessageBegin("download_url", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
-    return true, err2
-  } else {
-    result.Success = &retval
-}
-  if err2 = oprot.WriteMessageBegin("download_url", thrift.REPLY, seqId); err2 != nil {
-    err = err2
-  }
-  if err2 = result.Write(oprot); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.Flush(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err != nil {
-    return
-  }
-  return true, err
+  return true, nil
 }
 
 type remoteCmdProcessorSay struct {
@@ -994,44 +625,15 @@ func (p *remoteCmdProcessorSay) Process(seqId int32, iprot, oprot thrift.TProtoc
   args := RemoteCmdSayArgs{}
   if err = args.Read(iprot); err != nil {
     iprot.ReadMessageEnd()
-    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
-    oprot.WriteMessageBegin("say", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
     return false, err
   }
 
   iprot.ReadMessageEnd()
-  result := RemoteCmdSayResult{}
-var retval string
   var err2 error
-  if retval, err2 = p.handler.Say(args.Phrase); err2 != nil {
-    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing say: " + err2.Error())
-    oprot.WriteMessageBegin("say", thrift.EXCEPTION, seqId)
-    x.Write(oprot)
-    oprot.WriteMessageEnd()
-    oprot.Flush()
+  if err2 = p.handler.Say(args.Phrase); err2 != nil {
     return true, err2
-  } else {
-    result.Success = &retval
-}
-  if err2 = oprot.WriteMessageBegin("say", thrift.REPLY, seqId); err2 != nil {
-    err = err2
   }
-  if err2 = result.Write(oprot); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err2 = oprot.Flush(); err == nil && err2 != nil {
-    err = err2
-  }
-  if err != nil {
-    return
-  }
-  return true, err
+  return true, nil
 }
 
 type remoteCmdProcessorScreenshot struct {
@@ -1230,14 +832,14 @@ func (p *RemoteCmdUtcResult) String() string {
   return fmt.Sprintf("RemoteCmdUtcResult(%+v)", *p)
 }
 
-type RemoteCmdCPUUsageArgs struct {
+type RemoteCmdCPUArgs struct {
 }
 
-func NewRemoteCmdCPUUsageArgs() *RemoteCmdCPUUsageArgs {
-  return &RemoteCmdCPUUsageArgs{}
+func NewRemoteCmdCPUArgs() *RemoteCmdCPUArgs {
+  return &RemoteCmdCPUArgs{}
 }
 
-func (p *RemoteCmdCPUUsageArgs) Read(iprot thrift.TProtocol) error {
+func (p *RemoteCmdCPUArgs) Read(iprot thrift.TProtocol) error {
   if _, err := iprot.ReadStructBegin(); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
   }
@@ -1262,8 +864,8 @@ func (p *RemoteCmdCPUUsageArgs) Read(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdCPUUsageArgs) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("cpu_usage_args"); err != nil {
+func (p *RemoteCmdCPUArgs) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("cpu_args"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
   if p != nil {
   }
@@ -1274,35 +876,35 @@ func (p *RemoteCmdCPUUsageArgs) Write(oprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdCPUUsageArgs) String() string {
+func (p *RemoteCmdCPUArgs) String() string {
   if p == nil {
     return "<nil>"
   }
-  return fmt.Sprintf("RemoteCmdCPUUsageArgs(%+v)", *p)
+  return fmt.Sprintf("RemoteCmdCPUArgs(%+v)", *p)
 }
 
 // Attributes:
 //  - Success
-type RemoteCmdCPUUsageResult struct {
+type RemoteCmdCPUResult struct {
   Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
 }
 
-func NewRemoteCmdCPUUsageResult() *RemoteCmdCPUUsageResult {
-  return &RemoteCmdCPUUsageResult{}
+func NewRemoteCmdCPUResult() *RemoteCmdCPUResult {
+  return &RemoteCmdCPUResult{}
 }
 
-var RemoteCmdCPUUsageResult_Success_DEFAULT string
-func (p *RemoteCmdCPUUsageResult) GetSuccess() string {
+var RemoteCmdCPUResult_Success_DEFAULT string
+func (p *RemoteCmdCPUResult) GetSuccess() string {
   if !p.IsSetSuccess() {
-    return RemoteCmdCPUUsageResult_Success_DEFAULT
+    return RemoteCmdCPUResult_Success_DEFAULT
   }
 return *p.Success
 }
-func (p *RemoteCmdCPUUsageResult) IsSetSuccess() bool {
+func (p *RemoteCmdCPUResult) IsSetSuccess() bool {
   return p.Success != nil
 }
 
-func (p *RemoteCmdCPUUsageResult) Read(iprot thrift.TProtocol) error {
+func (p *RemoteCmdCPUResult) Read(iprot thrift.TProtocol) error {
   if _, err := iprot.ReadStructBegin(); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
   }
@@ -1334,7 +936,7 @@ func (p *RemoteCmdCPUUsageResult) Read(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdCPUUsageResult)  ReadField0(iprot thrift.TProtocol) error {
+func (p *RemoteCmdCPUResult)  ReadField0(iprot thrift.TProtocol) error {
   if v, err := iprot.ReadString(); err != nil {
   return thrift.PrependError("error reading field 0: ", err)
 } else {
@@ -1343,8 +945,8 @@ func (p *RemoteCmdCPUUsageResult)  ReadField0(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdCPUUsageResult) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("cpu_usage_result"); err != nil {
+func (p *RemoteCmdCPUResult) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("cpu_result"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
   if p != nil {
     if err := p.writeField0(oprot); err != nil { return err }
@@ -1356,7 +958,7 @@ func (p *RemoteCmdCPUUsageResult) Write(oprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdCPUUsageResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *RemoteCmdCPUResult) writeField0(oprot thrift.TProtocol) (err error) {
   if p.IsSetSuccess() {
     if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
       return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
@@ -1368,21 +970,21 @@ func (p *RemoteCmdCPUUsageResult) writeField0(oprot thrift.TProtocol) (err error
   return err
 }
 
-func (p *RemoteCmdCPUUsageResult) String() string {
+func (p *RemoteCmdCPUResult) String() string {
   if p == nil {
     return "<nil>"
   }
-  return fmt.Sprintf("RemoteCmdCPUUsageResult(%+v)", *p)
+  return fmt.Sprintf("RemoteCmdCPUResult(%+v)", *p)
 }
 
-type RemoteCmdAvailableRAMArgs struct {
+type RemoteCmdRAMArgs struct {
 }
 
-func NewRemoteCmdAvailableRAMArgs() *RemoteCmdAvailableRAMArgs {
-  return &RemoteCmdAvailableRAMArgs{}
+func NewRemoteCmdRAMArgs() *RemoteCmdRAMArgs {
+  return &RemoteCmdRAMArgs{}
 }
 
-func (p *RemoteCmdAvailableRAMArgs) Read(iprot thrift.TProtocol) error {
+func (p *RemoteCmdRAMArgs) Read(iprot thrift.TProtocol) error {
   if _, err := iprot.ReadStructBegin(); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
   }
@@ -1407,8 +1009,8 @@ func (p *RemoteCmdAvailableRAMArgs) Read(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdAvailableRAMArgs) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("available_ram_args"); err != nil {
+func (p *RemoteCmdRAMArgs) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("ram_args"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
   if p != nil {
   }
@@ -1419,35 +1021,35 @@ func (p *RemoteCmdAvailableRAMArgs) Write(oprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdAvailableRAMArgs) String() string {
+func (p *RemoteCmdRAMArgs) String() string {
   if p == nil {
     return "<nil>"
   }
-  return fmt.Sprintf("RemoteCmdAvailableRAMArgs(%+v)", *p)
+  return fmt.Sprintf("RemoteCmdRAMArgs(%+v)", *p)
 }
 
 // Attributes:
 //  - Success
-type RemoteCmdAvailableRAMResult struct {
+type RemoteCmdRAMResult struct {
   Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
 }
 
-func NewRemoteCmdAvailableRAMResult() *RemoteCmdAvailableRAMResult {
-  return &RemoteCmdAvailableRAMResult{}
+func NewRemoteCmdRAMResult() *RemoteCmdRAMResult {
+  return &RemoteCmdRAMResult{}
 }
 
-var RemoteCmdAvailableRAMResult_Success_DEFAULT string
-func (p *RemoteCmdAvailableRAMResult) GetSuccess() string {
+var RemoteCmdRAMResult_Success_DEFAULT string
+func (p *RemoteCmdRAMResult) GetSuccess() string {
   if !p.IsSetSuccess() {
-    return RemoteCmdAvailableRAMResult_Success_DEFAULT
+    return RemoteCmdRAMResult_Success_DEFAULT
   }
 return *p.Success
 }
-func (p *RemoteCmdAvailableRAMResult) IsSetSuccess() bool {
+func (p *RemoteCmdRAMResult) IsSetSuccess() bool {
   return p.Success != nil
 }
 
-func (p *RemoteCmdAvailableRAMResult) Read(iprot thrift.TProtocol) error {
+func (p *RemoteCmdRAMResult) Read(iprot thrift.TProtocol) error {
   if _, err := iprot.ReadStructBegin(); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
   }
@@ -1479,7 +1081,7 @@ func (p *RemoteCmdAvailableRAMResult) Read(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdAvailableRAMResult)  ReadField0(iprot thrift.TProtocol) error {
+func (p *RemoteCmdRAMResult)  ReadField0(iprot thrift.TProtocol) error {
   if v, err := iprot.ReadString(); err != nil {
   return thrift.PrependError("error reading field 0: ", err)
 } else {
@@ -1488,8 +1090,8 @@ func (p *RemoteCmdAvailableRAMResult)  ReadField0(iprot thrift.TProtocol) error 
   return nil
 }
 
-func (p *RemoteCmdAvailableRAMResult) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("available_ram_result"); err != nil {
+func (p *RemoteCmdRAMResult) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("ram_result"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
   if p != nil {
     if err := p.writeField0(oprot); err != nil { return err }
@@ -1501,7 +1103,7 @@ func (p *RemoteCmdAvailableRAMResult) Write(oprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdAvailableRAMResult) writeField0(oprot thrift.TProtocol) (err error) {
+func (p *RemoteCmdRAMResult) writeField0(oprot thrift.TProtocol) (err error) {
   if p.IsSetSuccess() {
     if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
       return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
@@ -1513,324 +1115,34 @@ func (p *RemoteCmdAvailableRAMResult) writeField0(oprot thrift.TProtocol) (err e
   return err
 }
 
-func (p *RemoteCmdAvailableRAMResult) String() string {
+func (p *RemoteCmdRAMResult) String() string {
   if p == nil {
     return "<nil>"
   }
-  return fmt.Sprintf("RemoteCmdAvailableRAMResult(%+v)", *p)
-}
-
-type RemoteCmdCPUUsageLastHourArgs struct {
-}
-
-func NewRemoteCmdCPUUsageLastHourArgs() *RemoteCmdCPUUsageLastHourArgs {
-  return &RemoteCmdCPUUsageLastHourArgs{}
-}
-
-func (p *RemoteCmdCPUUsageLastHourArgs) Read(iprot thrift.TProtocol) error {
-  if _, err := iprot.ReadStructBegin(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
-  }
-
-
-  for {
-    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-    if err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
-    }
-    if fieldTypeId == thrift.STOP { break; }
-    if err := iprot.Skip(fieldTypeId); err != nil {
-      return err
-    }
-    if err := iprot.ReadFieldEnd(); err != nil {
-      return err
-    }
-  }
-  if err := iprot.ReadStructEnd(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-  }
-  return nil
-}
-
-func (p *RemoteCmdCPUUsageLastHourArgs) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("cpu_usage_last_hour_args"); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
-  if p != nil {
-  }
-  if err := oprot.WriteFieldStop(); err != nil {
-    return thrift.PrependError("write field stop error: ", err) }
-  if err := oprot.WriteStructEnd(); err != nil {
-    return thrift.PrependError("write struct stop error: ", err) }
-  return nil
-}
-
-func (p *RemoteCmdCPUUsageLastHourArgs) String() string {
-  if p == nil {
-    return "<nil>"
-  }
-  return fmt.Sprintf("RemoteCmdCPUUsageLastHourArgs(%+v)", *p)
-}
-
-// Attributes:
-//  - Success
-type RemoteCmdCPUUsageLastHourResult struct {
-  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
-}
-
-func NewRemoteCmdCPUUsageLastHourResult() *RemoteCmdCPUUsageLastHourResult {
-  return &RemoteCmdCPUUsageLastHourResult{}
-}
-
-var RemoteCmdCPUUsageLastHourResult_Success_DEFAULT string
-func (p *RemoteCmdCPUUsageLastHourResult) GetSuccess() string {
-  if !p.IsSetSuccess() {
-    return RemoteCmdCPUUsageLastHourResult_Success_DEFAULT
-  }
-return *p.Success
-}
-func (p *RemoteCmdCPUUsageLastHourResult) IsSetSuccess() bool {
-  return p.Success != nil
-}
-
-func (p *RemoteCmdCPUUsageLastHourResult) Read(iprot thrift.TProtocol) error {
-  if _, err := iprot.ReadStructBegin(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
-  }
-
-
-  for {
-    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-    if err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
-    }
-    if fieldTypeId == thrift.STOP { break; }
-    switch fieldId {
-    case 0:
-      if err := p.ReadField0(iprot); err != nil {
-        return err
-      }
-    default:
-      if err := iprot.Skip(fieldTypeId); err != nil {
-        return err
-      }
-    }
-    if err := iprot.ReadFieldEnd(); err != nil {
-      return err
-    }
-  }
-  if err := iprot.ReadStructEnd(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-  }
-  return nil
-}
-
-func (p *RemoteCmdCPUUsageLastHourResult)  ReadField0(iprot thrift.TProtocol) error {
-  if v, err := iprot.ReadString(); err != nil {
-  return thrift.PrependError("error reading field 0: ", err)
-} else {
-  p.Success = &v
-}
-  return nil
-}
-
-func (p *RemoteCmdCPUUsageLastHourResult) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("cpu_usage_last_hour_result"); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
-  if p != nil {
-    if err := p.writeField0(oprot); err != nil { return err }
-  }
-  if err := oprot.WriteFieldStop(); err != nil {
-    return thrift.PrependError("write field stop error: ", err) }
-  if err := oprot.WriteStructEnd(); err != nil {
-    return thrift.PrependError("write struct stop error: ", err) }
-  return nil
-}
-
-func (p *RemoteCmdCPUUsageLastHourResult) writeField0(oprot thrift.TProtocol) (err error) {
-  if p.IsSetSuccess() {
-    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
-    if err := oprot.WriteString(string(*p.Success)); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
-    if err := oprot.WriteFieldEnd(); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
-  }
-  return err
-}
-
-func (p *RemoteCmdCPUUsageLastHourResult) String() string {
-  if p == nil {
-    return "<nil>"
-  }
-  return fmt.Sprintf("RemoteCmdCPUUsageLastHourResult(%+v)", *p)
-}
-
-type RemoteCmdAvailableRAMLastHourArgs struct {
-}
-
-func NewRemoteCmdAvailableRAMLastHourArgs() *RemoteCmdAvailableRAMLastHourArgs {
-  return &RemoteCmdAvailableRAMLastHourArgs{}
-}
-
-func (p *RemoteCmdAvailableRAMLastHourArgs) Read(iprot thrift.TProtocol) error {
-  if _, err := iprot.ReadStructBegin(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
-  }
-
-
-  for {
-    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-    if err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
-    }
-    if fieldTypeId == thrift.STOP { break; }
-    if err := iprot.Skip(fieldTypeId); err != nil {
-      return err
-    }
-    if err := iprot.ReadFieldEnd(); err != nil {
-      return err
-    }
-  }
-  if err := iprot.ReadStructEnd(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-  }
-  return nil
-}
-
-func (p *RemoteCmdAvailableRAMLastHourArgs) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("available_ram_last_hour_args"); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
-  if p != nil {
-  }
-  if err := oprot.WriteFieldStop(); err != nil {
-    return thrift.PrependError("write field stop error: ", err) }
-  if err := oprot.WriteStructEnd(); err != nil {
-    return thrift.PrependError("write struct stop error: ", err) }
-  return nil
-}
-
-func (p *RemoteCmdAvailableRAMLastHourArgs) String() string {
-  if p == nil {
-    return "<nil>"
-  }
-  return fmt.Sprintf("RemoteCmdAvailableRAMLastHourArgs(%+v)", *p)
-}
-
-// Attributes:
-//  - Success
-type RemoteCmdAvailableRAMLastHourResult struct {
-  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
-}
-
-func NewRemoteCmdAvailableRAMLastHourResult() *RemoteCmdAvailableRAMLastHourResult {
-  return &RemoteCmdAvailableRAMLastHourResult{}
-}
-
-var RemoteCmdAvailableRAMLastHourResult_Success_DEFAULT string
-func (p *RemoteCmdAvailableRAMLastHourResult) GetSuccess() string {
-  if !p.IsSetSuccess() {
-    return RemoteCmdAvailableRAMLastHourResult_Success_DEFAULT
-  }
-return *p.Success
-}
-func (p *RemoteCmdAvailableRAMLastHourResult) IsSetSuccess() bool {
-  return p.Success != nil
-}
-
-func (p *RemoteCmdAvailableRAMLastHourResult) Read(iprot thrift.TProtocol) error {
-  if _, err := iprot.ReadStructBegin(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
-  }
-
-
-  for {
-    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-    if err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
-    }
-    if fieldTypeId == thrift.STOP { break; }
-    switch fieldId {
-    case 0:
-      if err := p.ReadField0(iprot); err != nil {
-        return err
-      }
-    default:
-      if err := iprot.Skip(fieldTypeId); err != nil {
-        return err
-      }
-    }
-    if err := iprot.ReadFieldEnd(); err != nil {
-      return err
-    }
-  }
-  if err := iprot.ReadStructEnd(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-  }
-  return nil
-}
-
-func (p *RemoteCmdAvailableRAMLastHourResult)  ReadField0(iprot thrift.TProtocol) error {
-  if v, err := iprot.ReadString(); err != nil {
-  return thrift.PrependError("error reading field 0: ", err)
-} else {
-  p.Success = &v
-}
-  return nil
-}
-
-func (p *RemoteCmdAvailableRAMLastHourResult) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("available_ram_last_hour_result"); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
-  if p != nil {
-    if err := p.writeField0(oprot); err != nil { return err }
-  }
-  if err := oprot.WriteFieldStop(); err != nil {
-    return thrift.PrependError("write field stop error: ", err) }
-  if err := oprot.WriteStructEnd(); err != nil {
-    return thrift.PrependError("write struct stop error: ", err) }
-  return nil
-}
-
-func (p *RemoteCmdAvailableRAMLastHourResult) writeField0(oprot thrift.TProtocol) (err error) {
-  if p.IsSetSuccess() {
-    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
-    if err := oprot.WriteString(string(*p.Success)); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
-    if err := oprot.WriteFieldEnd(); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
-  }
-  return err
-}
-
-func (p *RemoteCmdAvailableRAMLastHourResult) String() string {
-  if p == nil {
-    return "<nil>"
-  }
-  return fmt.Sprintf("RemoteCmdAvailableRAMLastHourResult(%+v)", *p)
+  return fmt.Sprintf("RemoteCmdRAMResult(%+v)", *p)
 }
 
 // Attributes:
 //  - URL
 //  - Folder
-type RemoteCmdDownloadURLArgs struct {
+type RemoteCmdDownloadArgs struct {
   URL string `thrift:"url,1" db:"url" json:"url"`
   Folder string `thrift:"folder,2" db:"folder" json:"folder"`
 }
 
-func NewRemoteCmdDownloadURLArgs() *RemoteCmdDownloadURLArgs {
-  return &RemoteCmdDownloadURLArgs{}
+func NewRemoteCmdDownloadArgs() *RemoteCmdDownloadArgs {
+  return &RemoteCmdDownloadArgs{}
 }
 
 
-func (p *RemoteCmdDownloadURLArgs) GetURL() string {
+func (p *RemoteCmdDownloadArgs) GetURL() string {
   return p.URL
 }
 
-func (p *RemoteCmdDownloadURLArgs) GetFolder() string {
+func (p *RemoteCmdDownloadArgs) GetFolder() string {
   return p.Folder
 }
-func (p *RemoteCmdDownloadURLArgs) Read(iprot thrift.TProtocol) error {
+func (p *RemoteCmdDownloadArgs) Read(iprot thrift.TProtocol) error {
   if _, err := iprot.ReadStructBegin(); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
   }
@@ -1866,7 +1178,7 @@ func (p *RemoteCmdDownloadURLArgs) Read(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdDownloadURLArgs)  ReadField1(iprot thrift.TProtocol) error {
+func (p *RemoteCmdDownloadArgs)  ReadField1(iprot thrift.TProtocol) error {
   if v, err := iprot.ReadString(); err != nil {
   return thrift.PrependError("error reading field 1: ", err)
 } else {
@@ -1875,7 +1187,7 @@ func (p *RemoteCmdDownloadURLArgs)  ReadField1(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdDownloadURLArgs)  ReadField2(iprot thrift.TProtocol) error {
+func (p *RemoteCmdDownloadArgs)  ReadField2(iprot thrift.TProtocol) error {
   if v, err := iprot.ReadString(); err != nil {
   return thrift.PrependError("error reading field 2: ", err)
 } else {
@@ -1884,8 +1196,8 @@ func (p *RemoteCmdDownloadURLArgs)  ReadField2(iprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdDownloadURLArgs) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("download_url_args"); err != nil {
+func (p *RemoteCmdDownloadArgs) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("download_args"); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
   if p != nil {
     if err := p.writeField1(oprot); err != nil { return err }
@@ -1898,7 +1210,7 @@ func (p *RemoteCmdDownloadURLArgs) Write(oprot thrift.TProtocol) error {
   return nil
 }
 
-func (p *RemoteCmdDownloadURLArgs) writeField1(oprot thrift.TProtocol) (err error) {
+func (p *RemoteCmdDownloadArgs) writeField1(oprot thrift.TProtocol) (err error) {
   if err := oprot.WriteFieldBegin("url", thrift.STRING, 1); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:url: ", p), err) }
   if err := oprot.WriteString(string(p.URL)); err != nil {
@@ -1908,7 +1220,7 @@ func (p *RemoteCmdDownloadURLArgs) writeField1(oprot thrift.TProtocol) (err erro
   return err
 }
 
-func (p *RemoteCmdDownloadURLArgs) writeField2(oprot thrift.TProtocol) (err error) {
+func (p *RemoteCmdDownloadArgs) writeField2(oprot thrift.TProtocol) (err error) {
   if err := oprot.WriteFieldBegin("folder", thrift.STRING, 2); err != nil {
     return thrift.PrependError(fmt.Sprintf("%T write field begin error 2:folder: ", p), err) }
   if err := oprot.WriteString(string(p.Folder)); err != nil {
@@ -1918,105 +1230,11 @@ func (p *RemoteCmdDownloadURLArgs) writeField2(oprot thrift.TProtocol) (err erro
   return err
 }
 
-func (p *RemoteCmdDownloadURLArgs) String() string {
+func (p *RemoteCmdDownloadArgs) String() string {
   if p == nil {
     return "<nil>"
   }
-  return fmt.Sprintf("RemoteCmdDownloadURLArgs(%+v)", *p)
-}
-
-// Attributes:
-//  - Success
-type RemoteCmdDownloadURLResult struct {
-  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
-}
-
-func NewRemoteCmdDownloadURLResult() *RemoteCmdDownloadURLResult {
-  return &RemoteCmdDownloadURLResult{}
-}
-
-var RemoteCmdDownloadURLResult_Success_DEFAULT string
-func (p *RemoteCmdDownloadURLResult) GetSuccess() string {
-  if !p.IsSetSuccess() {
-    return RemoteCmdDownloadURLResult_Success_DEFAULT
-  }
-return *p.Success
-}
-func (p *RemoteCmdDownloadURLResult) IsSetSuccess() bool {
-  return p.Success != nil
-}
-
-func (p *RemoteCmdDownloadURLResult) Read(iprot thrift.TProtocol) error {
-  if _, err := iprot.ReadStructBegin(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
-  }
-
-
-  for {
-    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-    if err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
-    }
-    if fieldTypeId == thrift.STOP { break; }
-    switch fieldId {
-    case 0:
-      if err := p.ReadField0(iprot); err != nil {
-        return err
-      }
-    default:
-      if err := iprot.Skip(fieldTypeId); err != nil {
-        return err
-      }
-    }
-    if err := iprot.ReadFieldEnd(); err != nil {
-      return err
-    }
-  }
-  if err := iprot.ReadStructEnd(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-  }
-  return nil
-}
-
-func (p *RemoteCmdDownloadURLResult)  ReadField0(iprot thrift.TProtocol) error {
-  if v, err := iprot.ReadString(); err != nil {
-  return thrift.PrependError("error reading field 0: ", err)
-} else {
-  p.Success = &v
-}
-  return nil
-}
-
-func (p *RemoteCmdDownloadURLResult) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("download_url_result"); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
-  if p != nil {
-    if err := p.writeField0(oprot); err != nil { return err }
-  }
-  if err := oprot.WriteFieldStop(); err != nil {
-    return thrift.PrependError("write field stop error: ", err) }
-  if err := oprot.WriteStructEnd(); err != nil {
-    return thrift.PrependError("write struct stop error: ", err) }
-  return nil
-}
-
-func (p *RemoteCmdDownloadURLResult) writeField0(oprot thrift.TProtocol) (err error) {
-  if p.IsSetSuccess() {
-    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
-    if err := oprot.WriteString(string(*p.Success)); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
-    if err := oprot.WriteFieldEnd(); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
-  }
-  return err
-}
-
-func (p *RemoteCmdDownloadURLResult) String() string {
-  if p == nil {
-    return "<nil>"
-  }
-  return fmt.Sprintf("RemoteCmdDownloadURLResult(%+v)", *p)
+  return fmt.Sprintf("RemoteCmdDownloadArgs(%+v)", *p)
 }
 
 // Attributes:
@@ -2102,100 +1320,6 @@ func (p *RemoteCmdSayArgs) String() string {
     return "<nil>"
   }
   return fmt.Sprintf("RemoteCmdSayArgs(%+v)", *p)
-}
-
-// Attributes:
-//  - Success
-type RemoteCmdSayResult struct {
-  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
-}
-
-func NewRemoteCmdSayResult() *RemoteCmdSayResult {
-  return &RemoteCmdSayResult{}
-}
-
-var RemoteCmdSayResult_Success_DEFAULT string
-func (p *RemoteCmdSayResult) GetSuccess() string {
-  if !p.IsSetSuccess() {
-    return RemoteCmdSayResult_Success_DEFAULT
-  }
-return *p.Success
-}
-func (p *RemoteCmdSayResult) IsSetSuccess() bool {
-  return p.Success != nil
-}
-
-func (p *RemoteCmdSayResult) Read(iprot thrift.TProtocol) error {
-  if _, err := iprot.ReadStructBegin(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
-  }
-
-
-  for {
-    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
-    if err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
-    }
-    if fieldTypeId == thrift.STOP { break; }
-    switch fieldId {
-    case 0:
-      if err := p.ReadField0(iprot); err != nil {
-        return err
-      }
-    default:
-      if err := iprot.Skip(fieldTypeId); err != nil {
-        return err
-      }
-    }
-    if err := iprot.ReadFieldEnd(); err != nil {
-      return err
-    }
-  }
-  if err := iprot.ReadStructEnd(); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-  }
-  return nil
-}
-
-func (p *RemoteCmdSayResult)  ReadField0(iprot thrift.TProtocol) error {
-  if v, err := iprot.ReadString(); err != nil {
-  return thrift.PrependError("error reading field 0: ", err)
-} else {
-  p.Success = &v
-}
-  return nil
-}
-
-func (p *RemoteCmdSayResult) Write(oprot thrift.TProtocol) error {
-  if err := oprot.WriteStructBegin("say_result"); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
-  if p != nil {
-    if err := p.writeField0(oprot); err != nil { return err }
-  }
-  if err := oprot.WriteFieldStop(); err != nil {
-    return thrift.PrependError("write field stop error: ", err) }
-  if err := oprot.WriteStructEnd(); err != nil {
-    return thrift.PrependError("write struct stop error: ", err) }
-  return nil
-}
-
-func (p *RemoteCmdSayResult) writeField0(oprot thrift.TProtocol) (err error) {
-  if p.IsSetSuccess() {
-    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
-    if err := oprot.WriteString(string(*p.Success)); err != nil {
-    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
-    if err := oprot.WriteFieldEnd(); err != nil {
-      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
-  }
-  return err
-}
-
-func (p *RemoteCmdSayResult) String() string {
-  if p == nil {
-    return "<nil>"
-  }
-  return fmt.Sprintf("RemoteCmdSayResult(%+v)", *p)
 }
 
 type RemoteCmdScreenshotArgs struct {

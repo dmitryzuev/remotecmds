@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os/exec"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -15,40 +18,36 @@ func NewRPCHandler() *RPCHandler {
 // Utc func
 func (p *RPCHandler) Utc() (r string, err error) {
 	r = time.Now().UTC().String()
-	return r, nil
+	return
 }
 
-// CPUUsage func
-func (p *RPCHandler) CPUUsage() (r string, err error) {
-	return r, nil
+// CPU func
+func (p *RPCHandler) CPU() (r string, err error) {
+	return
 }
 
-// AvailableRAM func
-func (p *RPCHandler) AvailableRAM() (r string, err error) {
-	return r, nil
+// RAM func
+func (p *RPCHandler) RAM() (r string, err error) {
+	return
 }
 
-// CPUUsageLastHour func
-func (p *RPCHandler) CPUUsageLastHour() (r string, err error) {
-	return r, nil
-}
-
-// AvailableRAMLastHour func
-func (p *RPCHandler) AvailableRAMLastHour() (r string, err error) {
-	return r, nil
-}
-
-// DownloadURL func
-func (p *RPCHandler) DownloadURL(url string, folder string) (r string, err error) {
-	return r, nil
+// Download func
+func (p *RPCHandler) Download(url string, folder string) (err error) {
+	return
 }
 
 // Say func
-func (p *RPCHandler) Say(phrase string) (r string, err error) {
-	return r, nil
+func (p *RPCHandler) Say(phrase string) (err error) {
+	switch runtime.GOOS {
+	case "darwin":
+		cmd := exec.Command("say")
+		cmd.Stdin = strings.NewReader(phrase)
+		err = cmd.Run()
+	}
+	return
 }
 
 // Screenshot func
 func (p *RPCHandler) Screenshot() (r []byte, err error) {
-	return r, nil
+	return
 }

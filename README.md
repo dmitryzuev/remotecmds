@@ -33,3 +33,24 @@ Here is a list of suggested commands:
 * Windows users might want to look at [ptts](http://jampal.sourceforge.net/ptts.html) or [espeak](http://espeak.sourceforge.net/)
 * OS X has a `screencapture` command
 * Windows has a free tool called [NirCmd](http://www.nirsoft.net/utils/nircmd.html) to do a bunch of things.
+
+
+## Commands
+
+#### Regenerate Thrift files
+
+```bash
+thrift -r -out vendor --gen go rpc.thrift
+```
+
+#### Run server
+
+```bash
+go run *.go --server
+```
+
+#### Run client
+
+```bash
+go run *.go
+```
