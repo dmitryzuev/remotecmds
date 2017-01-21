@@ -13,21 +13,22 @@ import (
         "strconv"
         "strings"
         "git.apache.org/thrift.git/lib/go/thrift"
-	"shared"
-        "tutorial"
+        "rpc"
 )
 
-var _ = shared.GoUnusedProtection__
 
 func Usage() {
   fmt.Fprintln(os.Stderr, "Usage of ", os.Args[0], " [-h host:port] [-u url] [-f[ramed]] function [arg1 [arg2...]]:")
   flag.PrintDefaults()
   fmt.Fprintln(os.Stderr, "\nFunctions:")
-  fmt.Fprintln(os.Stderr, "  void ping()")
-  fmt.Fprintln(os.Stderr, "  i32 add(i32 num1, i32 num2)")
-  fmt.Fprintln(os.Stderr, "  i32 calculate(i32 logid, Work w)")
-  fmt.Fprintln(os.Stderr, "  void zip()")
-  fmt.Fprintln(os.Stderr, "  SharedStruct getStruct(i32 key)")
+  fmt.Fprintln(os.Stderr, "  string utc()")
+  fmt.Fprintln(os.Stderr, "  string cpu_usage()")
+  fmt.Fprintln(os.Stderr, "  string available_ram()")
+  fmt.Fprintln(os.Stderr, "  string cpu_usage_last_hour()")
+  fmt.Fprintln(os.Stderr, "  string available_ram_last_hour()")
+  fmt.Fprintln(os.Stderr, "  string download_url(string url, string folder)")
+  fmt.Fprintln(os.Stderr, "  string say(string phrase)")
+  fmt.Fprintln(os.Stderr, "  string screenshot()")
   fmt.Fprintln(os.Stderr)
   os.Exit(0)
 }
@@ -115,96 +116,81 @@ func main() {
     Usage()
     os.Exit(1)
   }
-  client := tutorial.NewCalculatorClientFactory(trans, protocolFactory)
+  client := rpc.NewRemoteCmdClientFactory(trans, protocolFactory)
   if err := trans.Open(); err != nil {
     fmt.Fprintln(os.Stderr, "Error opening socket to ", host, ":", port, " ", err)
     os.Exit(1)
   }
   
   switch cmd {
-  case "ping":
+  case "utc":
     if flag.NArg() - 1 != 0 {
-      fmt.Fprintln(os.Stderr, "Ping requires 0 args")
+      fmt.Fprintln(os.Stderr, "Utc requires 0 args")
       flag.Usage()
     }
-    fmt.Print(client.Ping())
+    fmt.Print(client.Utc())
     fmt.Print("\n")
     break
-  case "add":
-    if flag.NArg() - 1 != 2 {
-      fmt.Fprintln(os.Stderr, "Add requires 2 args")
-      flag.Usage()
-    }
-    tmp0, err7 := (strconv.Atoi(flag.Arg(1)))
-    if err7 != nil {
-      Usage()
-      return
-    }
-    argvalue0 := int32(tmp0)
-    value0 := argvalue0
-    tmp1, err8 := (strconv.Atoi(flag.Arg(2)))
-    if err8 != nil {
-      Usage()
-      return
-    }
-    argvalue1 := int32(tmp1)
-    value1 := argvalue1
-    fmt.Print(client.Add(value0, value1))
-    fmt.Print("\n")
-    break
-  case "calculate":
-    if flag.NArg() - 1 != 2 {
-      fmt.Fprintln(os.Stderr, "Calculate requires 2 args")
-      flag.Usage()
-    }
-    tmp0, err9 := (strconv.Atoi(flag.Arg(1)))
-    if err9 != nil {
-      Usage()
-      return
-    }
-    argvalue0 := int32(tmp0)
-    value0 := argvalue0
-    arg10 := flag.Arg(2)
-    mbTrans11 := thrift.NewTMemoryBufferLen(len(arg10))
-    defer mbTrans11.Close()
-    _, err12 := mbTrans11.WriteString(arg10)
-    if err12 != nil {
-      Usage()
-      return
-    }
-    factory13 := thrift.NewTSimpleJSONProtocolFactory()
-    jsProt14 := factory13.GetProtocol(mbTrans11)
-    argvalue1 := tutorial.NewWork()
-    err15 := argvalue1.Read(jsProt14)
-    if err15 != nil {
-      Usage()
-      return
-    }
-    value1 := argvalue1
-    fmt.Print(client.Calculate(value0, value1))
-    fmt.Print("\n")
-    break
-  case "zip":
+  case "cpu_usage":
     if flag.NArg() - 1 != 0 {
-      fmt.Fprintln(os.Stderr, "Zip requires 0 args")
+      fmt.Fprintln(os.Stderr, "CPUUsage requires 0 args")
       flag.Usage()
     }
-    fmt.Print(client.Zip())
+    fmt.Print(client.CPUUsage())
     fmt.Print("\n")
     break
-  case "getStruct":
+  case "available_ram":
+    if flag.NArg() - 1 != 0 {
+      fmt.Fprintln(os.Stderr, "AvailableRAM requires 0 args")
+      flag.Usage()
+    }
+    fmt.Print(client.AvailableRAM())
+    fmt.Print("\n")
+    break
+  case "cpu_usage_last_hour":
+    if flag.NArg() - 1 != 0 {
+      fmt.Fprintln(os.Stderr, "CPUUsageLastHour requires 0 args")
+      flag.Usage()
+    }
+    fmt.Print(client.CPUUsageLastHour())
+    fmt.Print("\n")
+    break
+  case "available_ram_last_hour":
+    if flag.NArg() - 1 != 0 {
+      fmt.Fprintln(os.Stderr, "AvailableRAMLastHour requires 0 args")
+      flag.Usage()
+    }
+    fmt.Print(client.AvailableRAMLastHour())
+    fmt.Print("\n")
+    break
+  case "download_url":
+    if flag.NArg() - 1 != 2 {
+      fmt.Fprintln(os.Stderr, "DownloadURL requires 2 args")
+      flag.Usage()
+    }
+    argvalue0 := flag.Arg(1)
+    value0 := argvalue0
+    argvalue1 := flag.Arg(2)
+    value1 := argvalue1
+    fmt.Print(client.DownloadURL(value0, value1))
+    fmt.Print("\n")
+    break
+  case "say":
     if flag.NArg() - 1 != 1 {
-      fmt.Fprintln(os.Stderr, "GetStruct requires 1 args")
+      fmt.Fprintln(os.Stderr, "Say requires 1 args")
       flag.Usage()
     }
-    tmp0, err16 := (strconv.Atoi(flag.Arg(1)))
-    if err16 != nil {
-      Usage()
-      return
-    }
-    argvalue0 := int32(tmp0)
+    argvalue0 := flag.Arg(1)
     value0 := argvalue0
-    fmt.Print(client.GetStruct(value0))
+    fmt.Print(client.Say(value0))
+    fmt.Print("\n")
+    break
+  case "screenshot":
+    if flag.NArg() - 1 != 0 {
+      fmt.Fprintln(os.Stderr, "Screenshot requires 0 args")
+      flag.Usage()
+    }
+    fmt.Print(client.Screenshot())
     fmt.Print("\n")
     break
   case "":
