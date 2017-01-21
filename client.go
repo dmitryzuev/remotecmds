@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"git.apache.org/thrift.git/lib/go/thrift"
+	"io/ioutil"
 	"rpc"
 )
 
@@ -11,6 +12,9 @@ func handleClient(client *rpc.RemoteCmdClient) (err error) {
 	fmt.Println("Current time:", utc)
 
 	client.Say("Hello, world!")
+
+	scr, _ := client.Screenshot()
+	ioutil.WriteFile("screenshot_new.png", scr, 0777)
 
 	return err
 }

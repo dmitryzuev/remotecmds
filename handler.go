@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -49,5 +51,17 @@ func (p *RPCHandler) Say(phrase string) (err error) {
 
 // Screenshot func
 func (p *RPCHandler) Screenshot() (r []byte, err error) {
+	switch runtime.GOOS {
+	case "darwin":
+		ch := make(chan time.Duration)
+		go func() {
+			cmd := exec.Command("screencapture", "-T4", "-x", "screenshot.png")
+			err = cmd.Run()
+			ch <- 5 * time.Second
+		}()
+		time.Sleep(<-ch)
+		r, err = ioutil.ReadFile("screenshot.png")
+		os.Remove("screenshot.png")
+	}
 	return
 }
